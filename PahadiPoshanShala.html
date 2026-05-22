@@ -1,0 +1,834 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Leaf, Mountain, User, ShoppingBag, QrCode, Home, 
+  ChevronRight, Activity, Droplet, Wind, Flame, 
+  Smartphone, Globe, Info, CheckCircle2, QrCode as ScanIcon,
+  MapPin, FlaskConical, ArrowRight, BarChart3, AlertTriangle, 
+  Users, TrendingUp, ShieldCheck, Bell, PhoneCall, Settings, 
+  Edit3, HelpCircle, Star, Heart, Map, Newspaper, Calendar
+} from 'lucide-react';
+
+export default function PahadiTrimApp() {
+  // Navigation State
+  const [currentPage, setCurrentPage] = useState('splash'); // splash, quiz, dashboard, market, traceability, profile, community
+  
+  // Language State
+  const [language, setLanguage] = useState('English');
+
+  // Quiz State
+  const [quizStep, setQuizStep] = useState(1);
+  const [quizData, setQuizData] = useState({
+    age: '', gender: '', weight: '', height: '',
+    activityLevel: '', dietaryPreference: '',
+    waist: '',
+    fastingGlucose: '', hba1c: '', isLabTested: false,
+    dosha: ''
+  });
+  
+  // Traceability State
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
+
+  // Loading Facts State
+  const pahadiFacts = [
+    "Gahat dal is traditionally used in Ayurveda to help dissolve kidney stones.",
+    "Jhangora (Barnyard Millet) has a Glycemic Index of just 41, making it perfect for diabetes management.",
+    "Mandua (Finger Millet) contains 3x more calcium than milk!",
+    "Sprouting our millets increases their bioavailable iron by up to 30%.",
+    "Our flash-drying process ensures traditional grains stay fresh for 9 months without any chemical preservatives."
+  ];
+  const [currentFact, setCurrentFact] = useState(0);
+
+  const handleQuizNext = () => {
+    if (quizStep < 6) {
+      setQuizStep(prev => prev + 1);
+    }
+  };
+
+  const handleQuizPrev = () => {
+    if (quizStep > 1) {
+      setQuizStep(prev => prev - 1);
+    }
+  };
+
+  const calculateBMI = () => {
+    if (!quizData.weight || !quizData.height) return 0;
+    const heightInMeters = quizData.height / 100;
+    return (quizData.weight / (heightInMeters * heightInMeters)).toFixed(1);
+  };
+
+  // Auto-transition from loading screen to dashboard
+  useEffect(() => {
+    if (currentPage === 'quiz' && quizStep === 6) {
+      const factInterval = setInterval(() => {
+        setCurrentFact(prev => (prev + 1) % pahadiFacts.length);
+      }, 2500); // Rotate fact every 2.5 seconds
+
+      const timer = setTimeout(() => {
+        setCurrentPage('dashboard');
+      }, 6500); // Extended loading slightly so users can read the awesome facts!
+      
+      return () => {
+        clearTimeout(timer);
+        clearInterval(factInterval);
+      };
+    }
+  }, [currentPage, quizStep]);
+
+  const BackgroundMotif = () => (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-10">
+      <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none">
+        <path fill="#064e3b" fillOpacity="1" d="M0,128L48,149.3C96,171,192,213,288,213.3C384,213,480,171,576,149.3C672,128,768,128,864,149.3C960,171,1056,213,1152,213.3C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+      </svg>
+    </div>
+  );
+
+  const BottomNav = () => (
+    <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-stone-200 pb-safe pt-2 px-6 flex justify-between items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50">
+      <NavItem icon={<Home size={24} />} label="Home" page="dashboard" />
+      <NavItem icon={<ShoppingBag size={24} />} label="Market" page="market" />
+      <NavItem icon={<QrCode size={24} />} label="Scan" page="traceability" />
+      <NavItem icon={<Users size={24} />} label="Community" page="community" />
+      <NavItem icon={<User size={24} />} label="Profile" page="profile" />
+    </div>
+  );
+
+  const NavItem = ({ icon, label, page }) => {
+    const isActive = currentPage === page;
+    return (
+      <button 
+        onClick={() => setCurrentPage(page)}
+        className={`flex flex-col items-center p-2 transition-colors ${isActive ? 'text-emerald-700' : 'text-stone-400'}`}
+      >
+        {icon}
+        <span className="text-[10px] font-medium mt-1">{label}</span>
+      </button>
+    );
+  };
+
+  const renderSplash = () => (
+    <div className="flex flex-col min-h-screen bg-stone-50 relative p-6 justify-center items-center">
+      <BackgroundMotif />
+      
+      {/* Language Selector Overlay */}
+      <div className="absolute top-6 right-6 flex items-center bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-stone-200 shadow-sm z-10">
+        <Globe size={16} className="text-emerald-700 mr-2" />
+        <select 
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="bg-transparent text-sm font-medium text-stone-700 outline-none cursor-pointer"
+        >
+          <option>English</option>
+          <option>Hindi (हिंदी)</option>
+          <option>Kumaoni (कुमाउँनी)</option>
+          <option>Garhwali (गढ़वाली)</option>
+        </select>
+      </div>
+
+      <div className="flex flex-col items-center text-center z-10 w-full max-w-sm mt-12">
+        <div className="w-24 h-24 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-3xl flex items-center justify-center shadow-xl mb-6 transform rotate-3">
+          <Leaf size={48} className="text-white transform -rotate-3" />
+        </div>
+        <h1 className="text-4xl font-extrabold text-stone-800 tracking-tight mb-2">Pahadi-Trim</h1>
+        <p className="text-stone-500 font-medium text-lg mb-12">Himalayan Wisdom for Modern Health</p>
+
+        <div className="w-full space-y-4">
+          <button 
+            onClick={() => setCurrentPage('quiz')}
+            className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition flex items-center justify-center"
+          >
+            Get Started
+            <ChevronRight size={20} className="ml-2" />
+          </button>
+          
+          <div className="flex items-center my-6">
+            <div className="flex-1 border-t border-stone-200"></div>
+            <span className="px-4 text-sm text-stone-400">or login with</span>
+            <div className="flex-1 border-t border-stone-200"></div>
+          </div>
+
+          <button className="w-full bg-white border border-stone-200 text-stone-700 py-3.5 rounded-xl font-semibold shadow-sm hover:bg-stone-50 transition flex items-center justify-center">
+            <Smartphone size={20} className="mr-2 text-stone-500" />
+            Phone Number (OTP)
+          </button>
+          
+          <div className="flex gap-4">
+            <button className="flex-1 bg-white border border-stone-200 text-stone-700 py-3.5 rounded-xl font-semibold shadow-sm hover:bg-stone-50 transition flex items-center justify-center">
+              Google
+            </button>
+            <button className="flex-1 bg-stone-900 text-white py-3.5 rounded-xl font-semibold shadow-sm hover:bg-black transition flex items-center justify-center">
+              Apple
+            </button>
+          </div>
+
+          {/* Poshan Sakhi Registration */}
+          <div className="pt-6 mt-4 border-t border-stone-200">
+            <button className="w-full text-emerald-700 py-3 rounded-xl font-bold text-sm bg-emerald-50 border border-emerald-100 shadow-sm hover:bg-emerald-100 transition flex items-center justify-center">
+              <ShieldCheck size={18} className="mr-2" />
+              Register as a Poshan Sakhi
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderQuiz = () => {
+    return (
+      <div className="flex flex-col min-h-screen bg-stone-50 relative p-6">
+        <BackgroundMotif />
+        
+        {/* Header & Progress */}
+        {quizStep < 6 && (
+          <div className="w-full pt-8 pb-4 z-10">
+            <div className="flex justify-between items-center mb-6">
+              <button onClick={() => quizStep === 1 ? setCurrentPage('splash') : handleQuizPrev()} className="text-stone-500 font-medium">Back</button>
+              <span className="text-emerald-700 font-bold">Step {quizStep} of 5</span>
+              <button onClick={handleQuizNext} className="text-emerald-700 font-bold">Skip</button>
+            </div>
+            <div className="w-full bg-stone-200 rounded-full h-2">
+              <div 
+                className="bg-emerald-600 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${(quizStep / 5) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex-1 flex flex-col z-10 mt-4">
+          {/* Step 1: Basic Info */}
+          {quizStep === 1 && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="text-2xl font-bold text-stone-800 mb-2">Let's build your profile</h2>
+              <p className="text-stone-500 mb-8">Basic details help us calculate your baseline metrics.</p>
+              
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="text-sm font-semibold text-stone-700 mb-1 block">Age</label>
+                    <input type="number" placeholder="Years" className="w-full p-4 rounded-xl border border-stone-200 bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none" value={quizData.age} onChange={e => setQuizData({...quizData, age: e.target.value})} />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-sm font-semibold text-stone-700 mb-1 block">Gender</label>
+                    <select className="w-full p-4 rounded-xl border border-stone-200 bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none" value={quizData.gender} onChange={e => setQuizData({...quizData, gender: e.target.value})}>
+                      <option value="">Select</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="text-sm font-semibold text-stone-700 mb-1 block">Weight (kg)</label>
+                    <input type="number" placeholder="kg" className="w-full p-4 rounded-xl border border-stone-200 bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none" value={quizData.weight} onChange={e => setQuizData({...quizData, weight: e.target.value})} />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-sm font-semibold text-stone-700 mb-1 block">Height (cm)</label>
+                    <input type="number" placeholder="cm" className="w-full p-4 rounded-xl border border-stone-200 bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none" value={quizData.height} onChange={e => setQuizData({...quizData, height: e.target.value})} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Diet & Activity */}
+          {quizStep === 2 && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="text-2xl font-bold text-stone-800 mb-2">Lifestyle Details</h2>
+              <p className="text-stone-500 mb-8">This helps us fine-tune your calorie and macronutrient needs.</p>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="text-sm font-semibold text-stone-700 mb-3 block">Activity Level</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['Sedentary', 'Light', 'Moderate', 'Very Active'].map(level => (
+                      <button 
+                        key={level}
+                        onClick={() => setQuizData({...quizData, activityLevel: level})}
+                        className={`p-3 rounded-xl border-2 text-sm font-bold transition-all ${quizData.activityLevel === level ? 'border-emerald-600 bg-emerald-50 text-emerald-800' : 'border-stone-200 bg-white text-stone-600 hover:border-emerald-200'}`}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-semibold text-stone-700 mb-3 block">Dietary Preference</label>
+                  <div className="space-y-3">
+                    {['Vegetarian', 'Vegan', 'Eggetarian', 'Non-Vegetarian'].map(diet => (
+                      <button 
+                        key={diet}
+                        onClick={() => setQuizData({...quizData, dietaryPreference: diet})}
+                        className={`w-full p-4 rounded-xl border-2 text-left font-bold transition-all flex justify-between items-center ${quizData.dietaryPreference === diet ? 'border-emerald-600 bg-emerald-50 text-emerald-800' : 'border-stone-200 bg-white text-stone-600 hover:border-emerald-200'}`}
+                      >
+                        {diet}
+                        {quizData.dietaryPreference === diet && <CheckCircle2 size={20} className="text-emerald-600" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Waist Circumference */}
+          {quizStep === 3 && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="text-2xl font-bold text-stone-800 mb-2">Metabolic Markers</h2>
+              <p className="text-stone-500 mb-8">Waist circumference is a key indicator for metabolic syndrome.</p>
+              
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 text-center mb-6">
+                 <Activity size={48} className="mx-auto text-amber-500 mb-4" />
+                 <label className="text-sm font-semibold text-stone-700 mb-2 block">Waist Circumference (cm)</label>
+                 <input type="number" placeholder="e.g. 85" className="w-full text-center text-2xl p-4 rounded-xl border border-stone-200 bg-stone-50 shadow-inner focus:ring-2 focus:ring-emerald-500 outline-none" value={quizData.waist} onChange={e => setQuizData({...quizData, waist: e.target.value})} />
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Blood Sugar */}
+          {quizStep === 4 && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="text-2xl font-bold text-stone-800 mb-2">Glucose Levels</h2>
+              <p className="text-stone-500 mb-6">Help us tailor your plan for sugar management.</p>
+              
+              <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-start gap-3 mb-6">
+                 <Info size={20} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+                 <p className="text-xs text-emerald-800 leading-relaxed">
+                   <b>What is HbA1c?</b> It's a standard blood test that measures your average blood sugar levels over the past 3 months. It provides a much better overall picture of metabolic health than a single fasting test.
+                 </p>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="text-sm font-semibold text-stone-700 mb-1 block">Fasting Blood Glucose (mg/dL)</label>
+                  <input type="number" placeholder="e.g. 100" className="w-full p-4 rounded-xl border border-stone-200 bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none" value={quizData.fastingGlucose} onChange={e => setQuizData({...quizData, fastingGlucose: e.target.value})} />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-stone-700 mb-1 block">HbA1c (%)</label>
+                  <input type="number" placeholder="e.g. 5.7" className="w-full p-4 rounded-xl border border-stone-200 bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none" value={quizData.hba1c} onChange={e => setQuizData({...quizData, hba1c: e.target.value})} />
+                </div>
+                <div className="flex items-center gap-3 bg-white p-4 rounded-xl border border-stone-200">
+                  <input 
+                    type="checkbox" 
+                    id="lab" 
+                    className="w-5 h-5 accent-emerald-600 rounded" 
+                    checked={quizData.isLabTested}
+                    onChange={(e) => setQuizData({...quizData, isLabTested: e.target.checked})}
+                  />
+                  <label htmlFor="lab" className="text-stone-700 font-medium">These are official lab test results</label>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    setQuizData({...quizData, fastingGlucose: '', hba1c: '', isLabTested: false});
+                    handleQuizNext();
+                  }} 
+                  className="w-full py-4 mt-2 text-stone-500 font-bold text-sm bg-stone-100 rounded-xl hover:bg-stone-200 transition"
+                >
+                  I don't know my numbers, I'll put this later
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Dosha */}
+          {quizStep === 5 && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-2xl font-bold text-stone-800">Ayurvedic Profile</h2>
+                <Info size={20} className="text-stone-400" />
+              </div>
+              <p className="text-stone-500 mb-6">Select your dominant Dosha to align with traditional pairings.</p>
+              
+              <div className="space-y-4">
+                {[
+                  { id: 'vata', name: 'Vata', icon: <Wind size={24}/>, desc: 'Air & Space. Energetic, creative, thin build.' },
+                  { id: 'pitta', name: 'Pitta', icon: <Flame size={24}/>, desc: 'Fire & Water. Intense, intelligent, medium build.' },
+                  { id: 'kapha', name: 'Kapha', icon: <Droplet size={24}/>, desc: 'Earth & Water. Calm, loving, solid build.' }
+                ].map(dosha => (
+                  <button 
+                    key={dosha.id}
+                    onClick={() => setQuizData({...quizData, dosha: dosha.id})}
+                    className={`w-full flex items-center p-4 rounded-2xl border-2 transition-all ${quizData.dosha === dosha.id ? 'border-emerald-600 bg-emerald-50 shadow-md' : 'border-stone-200 bg-white hover:border-emerald-200'}`}
+                  >
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-4 ${quizData.dosha === dosha.id ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-600'}`}>
+                      {dosha.icon}
+                    </div>
+                    <div className="text-left flex-1">
+                      <h3 className={`font-bold ${quizData.dosha === dosha.id ? 'text-emerald-800' : 'text-stone-800'}`}>{dosha.name}</h3>
+                      <p className="text-xs text-stone-500 mt-1">{dosha.desc}</p>
+                    </div>
+                    {quizData.dosha === dosha.id && <CheckCircle2 size={24} className="text-emerald-600" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 6: Loading / Generating */}
+          {quizStep === 6 && (
+            <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in duration-1000">
+              <div className="relative w-32 h-32 mb-8">
+                <div className="absolute inset-0 border-4 border-stone-200 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-emerald-600 rounded-full border-t-transparent animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Leaf size={40} className="text-emerald-600 animate-pulse" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">Generating your<br/>Pahadi Diet Chart...</h2>
+              <p className="text-stone-500 text-center px-6 mb-8">Synthesizing modern macros with traditional Himalayan food pairings.</p>
+              
+              <div className="mt-4 bg-emerald-50 p-5 rounded-2xl border border-emerald-100 text-center max-w-xs mx-auto animate-in slide-in-from-bottom-4 duration-500 shadow-sm transition-all">
+                 <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-2 flex justify-center items-center gap-1"><Info size={14}/> Did You Know?</p>
+                 <p className="text-sm text-emerald-800 font-medium italic min-h-[60px] flex items-center justify-center transition-opacity duration-300">
+                   "{pahadiFacts[currentFact]}"
+                 </p>
+              </div>
+            </div>
+          )}
+          
+          {/* Next Button for Steps 1-5 */}
+          {quizStep < 6 && (
+            <button 
+              onClick={handleQuizNext}
+              className="mt-auto w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition"
+            >
+              {quizStep === 5 ? 'Generate My Plan' : 'Continue'}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDashboard = () => {
+    const bmi = calculateBMI();
+    return (
+      <div className="flex flex-col min-h-screen bg-stone-50 pb-24">
+        {/* Header */}
+        <div className="bg-emerald-700 px-6 pt-12 pb-8 rounded-b-[2rem] shadow-md relative overflow-hidden">
+           <Mountain className="absolute right-[-20px] bottom-[-20px] text-emerald-600 opacity-30" size={120} />
+           <h1 className="text-white text-3xl font-bold mb-1">Your Pahadi Plan</h1>
+           <p className="text-emerald-100 font-medium text-sm">Focus: {quizData.fastingGlucose > 100 ? 'Blood Sugar Management' : 'Metabolic Wellness'}</p>
+        </div>
+
+        <div className="px-6 -mt-6 z-10 space-y-6">
+          {/* Vitals Tracker */}
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-stone-200 flex items-center justify-between">
+             <div>
+               <p className="text-stone-400 text-xs font-semibold uppercase tracking-wider mb-1">Current BMI</p>
+               <div className="flex items-baseline gap-2">
+                 <span className="text-3xl font-extrabold text-stone-800">{bmi || '24.5'}</span>
+                 <span className="text-emerald-600 text-sm font-bold bg-emerald-50 px-2 py-0.5 rounded">Healthy</span>
+               </div>
+             </div>
+             <div className="h-12 w-px bg-stone-200"></div>
+             <div>
+               <p className="text-stone-400 text-xs font-semibold uppercase tracking-wider mb-1">Waist Circ.</p>
+               <div className="flex items-baseline gap-2">
+                 <span className="text-3xl font-extrabold text-stone-800">{quizData.waist || '82'}</span>
+                 <span className="text-stone-500 text-sm font-medium">cm</span>
+               </div>
+             </div>
+          </div>
+
+          {/* Diet Chart */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-stone-800">Today's Diet Chart</h2>
+              <span className="text-xs font-medium bg-amber-100 text-amber-800 px-2 py-1 rounded-full">{quizData.dietaryPreference || 'Vegetarian'}</span>
+            </div>
+            
+            <div className="space-y-4">
+              {[
+                { time: 'Breakfast', meal: 'Mandua (Ragi) Chilla with Mint Chutney', note: 'Rich in Calcium & Fibre. Sourced locally.' },
+                { time: 'Lunch', meal: 'Low-GI Gahat Dal with Red Rice', note: 'Protein-packed. Helps dissolve kidney stones.' },
+                { time: 'Dinner', meal: 'Jhangora (Barnyard Millet) Khichdi', note: 'Light on stomach, low glycemic index.' }
+              ].map((item, i) => (
+                <div key={i} className="bg-white p-4 rounded-2xl shadow-sm border border-stone-200 flex gap-4">
+                  <div className="bg-emerald-50 w-16 h-16 rounded-xl flex flex-col items-center justify-center flex-shrink-0 text-emerald-700">
+                    <span className="text-[10px] uppercase font-bold text-emerald-500">Time</span>
+                    <span className="font-semibold text-sm">{i === 0 ? '9 AM' : i === 1 ? '1 PM' : '7 PM'}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-stone-800">{item.meal}</h3>
+                    <p className="text-xs text-stone-500 mt-1 leading-snug">{item.note}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Goals Widget */}
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-5 rounded-2xl text-white shadow-md">
+            <h3 className="font-bold mb-2 flex items-center gap-2"><CheckCircle2 size={18}/> Health Goals</h3>
+            <ul className="text-sm space-y-2 opacity-90">
+              <li>• Reduce fasting glucose below 95 mg/dL</li>
+              <li>• Maintain daily fiber intake of 30g+</li>
+              <li>• Balance {quizData.dosha || 'Pitta'} dosha through cooling spices</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderMarketplace = () => {
+    const marketplaceItems = [
+      {
+        id: 1,
+        title: "Low-GI Gahat Meal Kit",
+        price: "₹899",
+        desc: "Traditional horse gram curated for metabolic health and kidney detox.",
+        image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400",
+        stats: [{val: "30", label: "Glycemic Idx", color: "text-emerald-600"}, {val: "12g", label: "Fibre", color: "text-amber-600"}, {val: "22g", label: "Protein", color: "text-blue-600"}]
+      },
+      {
+        id: 2,
+        title: "Bal-Shakti Porridge Mix",
+        price: "₹149",
+        desc: "Sprouted millet blend. Instantly dissolves in hot water, highly bio-available iron.",
+        image: "https://images.unsplash.com/photo-1517686469429-8bdb88b9f907?auto=format&fit=crop&q=80&w=400",
+        stats: [{val: "15%", label: "More Iron", color: "text-emerald-600"}, {val: "9mo", label: "Shelf Life", color: "text-amber-600"}, {val: "0g", label: "Added Sugar", color: "text-blue-600"}]
+      },
+      {
+        id: 3,
+        title: "Mandua (Ragi) Flour",
+        price: "₹199",
+        desc: "Stone-ground finger millet. Cold milled to preserve complete structural nutrients.",
+        image: "https://images.unsplash.com/photo-1574316071802-0d684efa7aa5?auto=format&fit=crop&q=80&w=400",
+        stats: [{val: "344mg", label: "Calcium", color: "text-emerald-600"}, {val: "100%", label: "Organic", color: "text-amber-600"}, {val: "Gluten", label: "Free", color: "text-blue-600"}]
+      }
+    ];
+
+    return (
+      <div className="flex flex-col min-h-screen bg-stone-50 pb-24">
+        <div className="bg-white px-6 pt-12 pb-4 border-b border-stone-200 sticky top-0 z-20">
+           <h1 className="text-2xl font-bold text-stone-800">Pahadi Pantry</h1>
+           <p className="text-stone-500 text-sm">Locally sourced superfoods</p>
+        </div>
+
+        <div className="p-6">
+          <div className="space-y-8">
+            {marketplaceItems.map(item => (
+              <div key={item.id} className="bg-white rounded-[2rem] shadow-lg border border-stone-200 overflow-hidden">
+                <div className="h-48 bg-stone-200 relative overflow-hidden flex items-center justify-center">
+                  <img src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 to-transparent"></div>
+                  <div className="z-10 bg-white/90 backdrop-blur px-4 py-2 rounded-full text-sm font-bold text-emerald-800 absolute bottom-4 left-4 shadow-sm flex items-center gap-1">
+                    <Star size={14} className="text-emerald-600 fill-emerald-600" /> Authentic Himalayan
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <h2 className="text-xl font-bold text-stone-800 leading-tight pr-2">{item.title}</h2>
+                    <span className="bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-lg">{item.price}</span>
+                  </div>
+                  
+                  <p className="text-stone-500 text-sm mb-6">{item.desc}</p>
+                  
+                  <div className="flex gap-2 mb-6">
+                    {item.stats.map((stat, i) => (
+                      <div key={i} className="bg-stone-50 p-2 rounded-lg flex-1 text-center border border-stone-100">
+                        <span className={`block text-lg font-bold ${stat.color}`}>{stat.val}</span>
+                        <span className="text-[9px] text-stone-500 font-semibold uppercase">{stat.label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Subscriptions only for the Meal Kit */}
+                  {item.id === 1 && (
+                    <div className="space-y-4 mb-6">
+                      <div>
+                        <label className="text-sm font-semibold text-stone-700 mb-2 block">Delivery Frequency</label>
+                        <div className="flex gap-2 bg-stone-100 p-1 rounded-xl">
+                          <button className="flex-1 bg-white shadow-sm py-2 rounded-lg text-sm font-bold text-emerald-700">Weekly</button>
+                          <button className="flex-1 py-2 rounded-lg text-sm font-medium text-stone-500 hover:text-stone-700">Bi-Weekly</button>
+                          <button className="flex-1 py-2 rounded-lg text-sm font-medium text-stone-500 hover:text-stone-700">Monthly</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <button className="w-full bg-[#1A1A1A] text-white py-4 rounded-xl font-bold shadow-md hover:bg-black transition flex items-center justify-center gap-2">
+                    <ShoppingBag size={18}/> Add to Cart
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTraceability = () => {
+    const handleSimulateScan = () => {
+      setIsScanning(true);
+      setTimeout(() => {
+        setIsScanning(false);
+        setScanResult({
+          farmer: "Meena Devi",
+          village: "Munsiari, Pithoragarh",
+          harvest: "Oct 12, 2025",
+          fssai: "Verified - Batch #GAH4492"
+        });
+      }, 1500);
+    };
+
+    return (
+      <div className="flex flex-col min-h-screen bg-[#1c1917] text-stone-100 pb-24">
+        <div className="px-6 pt-12 pb-4 relative z-10">
+           <h1 className="text-2xl font-bold text-white">Verify Origin</h1>
+           <p className="text-stone-400 text-sm">Scan your packet's QR code</p>
+        </div>
+
+        {!scanResult ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-6 z-10">
+            {/* Mock Camera View */}
+            <div className="relative w-72 h-72 mb-12">
+              {/* Corner markers */}
+              <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-emerald-500 rounded-tl-xl"></div>
+              <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-emerald-500 rounded-tr-xl"></div>
+              <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-emerald-500 rounded-bl-xl"></div>
+              <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-emerald-500 rounded-br-xl"></div>
+              
+              <div className="absolute inset-4 bg-stone-800/50 rounded-lg flex items-center justify-center overflow-hidden">
+                {isScanning ? (
+                  <div className="w-full h-1 bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,1)] animate-[scan_1.5s_ease-in-out_infinite]"></div>
+                ) : (
+                  <ScanIcon size={48} className="text-stone-500/50" />
+                )}
+              </div>
+            </div>
+
+            <button 
+              onClick={handleSimulateScan}
+              disabled={isScanning}
+              className={`px-8 py-4 rounded-full font-bold text-lg flex items-center gap-2 transition ${isScanning ? 'bg-stone-800 text-stone-400' : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-900/50'}`}
+            >
+              {isScanning ? 'Scanning...' : 'Simulate Scan'}
+            </button>
+          </div>
+        ) : (
+          <div className="flex-1 p-6 z-10 animate-in slide-in-from-bottom-8 fade-in duration-500">
+            <div className="bg-white rounded-[2rem] p-6 text-stone-800 shadow-2xl mt-4">
+              <div className="flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-6 mx-auto">
+                <CheckCircle2 size={32} className="text-emerald-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-center mb-6">Origin Verified</h2>
+              
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start gap-4 mb-4">
+                  <img src="https://i.ibb.co/ym2qPBCP/mukteshwar-uttarakhand-india-portrait-of-a-kumaoni-woman-living-in-a-tiny-village-near.webp" alt="Farmer" className="w-16 h-16 rounded-xl object-cover shadow-sm border border-emerald-100" />
+                  <div>
+                    <p className="text-xs text-stone-500 font-bold uppercase">Grown By</p>
+                    <p className="font-semibold text-lg">{scanResult.farmer}</p>
+                    <p className="text-sm text-stone-500 flex items-center gap-1 mt-1"><MapPin size={14}/> {scanResult.village}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="bg-stone-100 p-3 rounded-xl"><Leaf size={20} className="text-emerald-700"/></div>
+                  <div>
+                    <p className="text-xs text-stone-500 font-bold uppercase">Harvest Date</p>
+                    <p className="font-semibold">{scanResult.harvest}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="bg-stone-100 p-3 rounded-xl"><FlaskConical size={20} className="text-emerald-700"/></div>
+                  <div>
+                    <p className="text-xs text-stone-500 font-bold uppercase">Lab Testing</p>
+                    <p className="font-semibold text-emerald-700">{scanResult.fssai}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Impact Story */}
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 relative overflow-hidden">
+                <Leaf className="absolute -right-4 -bottom-4 text-amber-200 opacity-50" size={80} />
+                <p className="font-medium text-amber-900 relative z-10 italic">
+                  "Your purchase helped {scanResult.farmer.split(' ')[0]} from Almora earn a better livelihood and preserve traditional farming."
+                </p>
+              </div>
+
+              <button 
+                onClick={() => setScanResult(null)}
+                className="w-full mt-6 py-4 bg-stone-100 text-stone-600 rounded-xl font-bold hover:bg-stone-200 transition"
+              >
+                Scan Another Packet
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Global style for scan animation */}
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes scan {
+            0% { transform: translateY(-100px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100px); opacity: 0; }
+          }
+        `}} />
+      </div>
+    );
+  };
+
+  const renderCommunity = () => (
+    <div className="flex flex-col min-h-screen bg-stone-50 pb-24">
+      <div className="bg-emerald-700 px-6 pt-12 pb-8 rounded-b-[2rem] shadow-md relative overflow-hidden">
+         <Users className="absolute right-[-20px] bottom-[-20px] text-emerald-600 opacity-30" size={120} />
+         <h1 className="text-white text-3xl font-bold mb-1 relative z-10">Community</h1>
+         <p className="text-emerald-100 font-medium text-sm relative z-10">Real change, real people.</p>
+      </div>
+
+      <div className="px-6 -mt-6 z-10 space-y-6">
+        {/* Impact Dashboard */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-200">
+            <Heart className="text-rose-500 mb-2" size={24} />
+            <p className="text-stone-400 text-[10px] font-bold uppercase tracking-wider">Lives Improved</p>
+            <p className="text-2xl font-extrabold text-stone-800">72K<span className="text-emerald-600 text-lg">+</span></p>
+          </div>
+          <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-200">
+            <TrendingUp className="text-emerald-600 mb-2" size={24} />
+            <p className="text-stone-400 text-[10px] font-bold uppercase tracking-wider">Farmer Income</p>
+            <p className="text-2xl font-extrabold text-stone-800">+25<span className="text-stone-500 text-lg">%</span></p>
+          </div>
+        </div>
+
+        {/* Direct Farmer Support */}
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+           <div className="p-5">
+             <h3 className="font-bold text-stone-800 mb-2 flex items-center gap-2"><Smartphone size={18} className="text-emerald-600"/> Direct Support</h3>
+             <p className="text-sm text-stone-500 mb-4">Send a tip or direct payment to our farmers via UPI. Zero intermediaries, 100% value to the source.</p>
+             <button className="w-full py-3 bg-[#1A1A1A] text-white rounded-xl font-bold text-sm hover:bg-black transition flex justify-center items-center gap-2">
+               Support via UPI <ArrowRight size={16} />
+             </button>
+           </div>
+        </div>
+
+        {/* Nutrition Tourism */}
+        <div>
+          <h3 className="font-bold text-stone-800 mb-3 flex items-center gap-2"><Map size={18} className="text-amber-600"/> Nutrition Tourism</h3>
+          <div className="space-y-4">
+             <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-200 flex items-center justify-between hover:border-emerald-200 transition">
+               <div>
+                 <h4 className="font-bold text-stone-800 text-sm">MPU Hub Visit</h4>
+                 <p className="text-xs text-stone-500 mt-1 flex items-center gap-1"><MapPin size={12}/> Pithoragarh, UK</p>
+               </div>
+               <button className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100">Book</button>
+             </div>
+             <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-200 flex items-center justify-between hover:border-emerald-200 transition">
+               <div>
+                 <h4 className="font-bold text-stone-800 text-sm">Food Prep Workshop</h4>
+                 <p className="text-xs text-stone-500 mt-1 flex items-center gap-1"><Calendar size={12}/> Every Weekend</p>
+               </div>
+               <button className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100">Register</button>
+             </div>
+          </div>
+        </div>
+        
+        {/* Latest News & Updates */}
+        <div>
+          <h3 className="font-bold text-stone-800 mb-3 flex items-center gap-2"><Newspaper size={18} className="text-blue-600"/> Latest Updates</h3>
+          <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl relative overflow-hidden">
+             <Leaf className="absolute -right-4 -bottom-4 text-blue-200 opacity-50 transform rotate-45" size={60} />
+             <span className="relative z-10 text-[10px] font-bold text-blue-600 uppercase bg-blue-100 px-2 py-1 rounded">Field News</span>
+             <h4 className="relative z-10 font-bold text-stone-800 mt-3 text-sm">New MPU installed in Pithoragarh</h4>
+             <p className="relative z-10 text-xs text-stone-600 mt-1 leading-relaxed">Our latest solar-powered facility is now fully operational, employing 12 local SHG women and preparing for the winter Mandua harvest.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderProfile = () => (
+    <div className="flex flex-col min-h-screen bg-stone-50 pb-24">
+      <div className="bg-emerald-700 px-6 pt-12 pb-8 rounded-b-[2rem] shadow-md relative overflow-hidden">
+         <div className="flex items-center gap-4 relative z-10">
+           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/50 overflow-hidden shadow-lg">
+             <img src="https://i.ibb.co/j9CxZ7jJ/1752950929851.jpg" alt="Yuvraj Ghimire" className="w-full h-full object-cover" />
+           </div>
+           <div>
+             <h1 className="text-white text-2xl font-bold mb-1">Yuvraj Ghimire</h1>
+             <p className="text-emerald-100 font-medium text-sm">+91 98765 43210</p>
+           </div>
+         </div>
+         <Mountain className="absolute right-[-20px] bottom-[-20px] text-emerald-600 opacity-30" size={120} />
+      </div>
+
+      <div className="px-6 -mt-6 z-10 space-y-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+          <button onClick={() => {setCurrentPage('quiz'); setQuizStep(2);}} className="w-full flex items-center justify-between p-4 border-b border-stone-100 hover:bg-stone-50 transition">
+            <div className="flex items-center gap-3 text-stone-700 font-semibold">
+              <div className="bg-amber-100 p-2 rounded-lg text-amber-700"><Edit3 size={18}/></div>
+              Change Diet Requirements
+            </div>
+            <ChevronRight size={18} className="text-stone-400" />
+          </button>
+          
+          <button className="w-full flex items-center justify-between p-4 border-b border-stone-100 hover:bg-stone-50 transition">
+            <div className="flex items-center gap-3 text-stone-700 font-semibold">
+              <div className="bg-blue-100 p-2 rounded-lg text-blue-700"><ShoppingBag size={18}/></div>
+              Manage Subscriptions
+            </div>
+            <ChevronRight size={18} className="text-stone-400" />
+          </button>
+
+          <button className="w-full flex items-center justify-between p-4 hover:bg-stone-50 transition">
+            <div className="flex items-center gap-3 text-stone-700 font-semibold">
+              <div className="bg-stone-100 p-2 rounded-lg text-stone-700"><Settings size={18}/></div>
+              App Settings
+            </div>
+            <ChevronRight size={18} className="text-stone-400" />
+          </button>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+          <button className="w-full flex items-center justify-between p-4 border-b border-stone-100 hover:bg-emerald-50 transition">
+            <div className="flex items-center gap-3 text-emerald-700 font-bold">
+              <div className="bg-emerald-100 p-2 rounded-lg text-emerald-700"><PhoneCall size={18}/></div>
+              24/7 Helpline & Poshan Sakhi
+            </div>
+            <ChevronRight size={18} className="text-emerald-400" />
+          </button>
+          
+          <button className="w-full flex items-center justify-between p-4 hover:bg-stone-50 transition">
+            <div className="flex items-center gap-3 text-stone-700 font-semibold">
+              <div className="bg-indigo-100 p-2 rounded-lg text-indigo-700"><HelpCircle size={18}/></div>
+              FAQs & Health Articles
+            </div>
+            <ChevronRight size={18} className="text-stone-400" />
+          </button>
+        </div>
+        
+        <button className="w-full py-4 mt-6 text-rose-500 font-bold border border-rose-200 bg-rose-50 rounded-xl hover:bg-rose-100 transition">
+          Log Out
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="w-full min-h-screen bg-stone-900 flex justify-center font-sans">
+      {/* Mobile container constraint for desktop viewing */}
+      <div className="w-full max-w-md bg-white min-h-screen shadow-2xl relative overflow-x-hidden">
+        {currentPage === 'splash' && renderSplash()}
+        {currentPage === 'quiz' && renderQuiz()}
+        {currentPage === 'dashboard' && renderDashboard()}
+        {currentPage === 'market' && renderMarketplace()}
+        {currentPage === 'traceability' && renderTraceability()}
+        {currentPage === 'community' && renderCommunity()}
+        {currentPage === 'profile' && renderProfile()}
+
+        {/* Show Bottom Nav only on specific pages */}
+        {['dashboard', 'market', 'traceability', 'community', 'profile'].includes(currentPage) && <BottomNav />}
+      </div>
+    </div>
+  );
+}
